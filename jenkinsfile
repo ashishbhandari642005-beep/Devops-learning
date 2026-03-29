@@ -7,8 +7,9 @@ pipeline {
   }
   stages{
      stage('git clone'){
-        steps {         
-             git 'https://github.com/ashishbhandari642005-beep/moodle-ec2-01'
+        steps { 
+             git branch: 'jenkins_learning',
+             url 'https://github.com/ashishbhandari642005-beep/moodle-ec2-01'
          }
      }
      stage('build the image'){
