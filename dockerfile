@@ -1,5 +1,11 @@
-FROM node : 18-alpine
+FROM node:18-alpine
+
 WORKDIR /app
-COPY ..
+
+COPY package*.json ./
+
 RUN npm install
-CMD ["Node","app.js"]
+
+COPY . .
+
+CMD ["node", "app.js"]
