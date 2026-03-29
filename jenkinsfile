@@ -18,13 +18,14 @@ pipeline {
      }  
      stage('login dockerhub'){
          steps {
-             withCredentials([ usernamePassword(
-                 credentialsId: 'docker-hub-id', 
-                 usernameVariable: 'USER', passwordVariable: 'PASS'
-             )]){
+           withCredentials([ usernamePassword(
+                credentialsId: 'docker-hub-id', 
+                usernameVariable: 'USER',
+                passwordVariable: 'PASS'
+             )]) {
                sh 'docker login -u $USER -p $PASS'
-             }
-       }
+            }
+        }
      }
      stage('push image'){
         steps {
