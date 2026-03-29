@@ -2,16 +2,10 @@ pipeline {
   agent any
   environment{
         IMAGE_NAME = "ashish00234/my-app"
-    	IMAGE_TAG = "build-${env.BUILD_NUMBER}"
+    	  IMAGE_TAG = "build-${env.BUILD_NUMBER}"
          
   }
   stages{
-     stage('git clone'){
-        steps { 
-             git branch: 'jenkins_learning',
-             url 'https://github.com/ashishbhandari642005-beep/moodle-ec2-01'
-         }
-     }
      stage('build the image'){
          steps {
               sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
