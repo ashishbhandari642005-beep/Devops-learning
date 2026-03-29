@@ -1,0 +1,30 @@
+pipeline {
+  agent any
+  environment{
+        IMAGE_NAME = "my_app"
+    	IMAGE_TAG = "build-${env.BUILD_ID}"
+  }
+  stages{
+     stage('git clone'){
+        steps {         
+             git 'https://github.com/ashishbhandari642005-beep/moodle-ec2-01'
+         }
+     }
+     stage('build the image'){
+         steps {
+              sh "docker built -t ${IMAGE_NAME}:{IMAGE_TAG}"
+         }
+     }  
+     stage('login dockerhub'){
+        steps {
+             withCredintials([ usernamePassword( CredintialsID: 'docker-hub-id', usernamevariable: 'USER', passwordVariable: 'PASS')]}
+               sh 'docker login -u $USER -p $PASS'
+        }
+     }
+     stage('push image'){
+        steps {
+              sh 'docker push ${IMAGE_NAME}:${IMAGE-TAG}' 
+        }
+     }
+  }
+}
