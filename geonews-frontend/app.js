@@ -81,29 +81,42 @@ function renderTab(tab, name) {
 
   const body = document.getElementById('panelBody');
 
-  if (tab === 'news') {
-    body.innerHTML =
-      '<div class="news-loading">' +
-      '<div class="skeleton" style="height:80px;border-radius:10px;"></div>' +
-      '<div class="skeleton" style="height:80px;border-radius:10px;"></div>' +
-      '<div class="skeleton" style="height:80px;border-radius:10px;"></div>' +
-      '</div>';
+  if (tab === 'news') if (tab === 'news') {
+  body.innerHTML =
+    '<div class="news-loading">' +
+    '<div class="skeleton" style="height:80px;border-radius:10px;"></div>' +
+    '<div class="skeleton" style="height:80px;border-radius:10px;"></div>' +
+    '<div class="skeleton" style="height:80px;border-radius:10px;"></div>' +
+    '</div>';
 
-    setTimeout(() => {
-      const news = newsDb[name] || newsDb.default;
-      body.innerHTML = news.map(n => `
+  fetch(`http://k8s-geonews-backends-93ca54a87d-dded4b954a3a5d2f.elb.eu-north-1.amazonaws.com/news?country=${encodeURIComponent(name)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.news || data.news.length === 0) {
+        body.innerHTML = "<p>No news found</p>";
+        return;
+      }
+
+      body.innerHTML = data.news.map(n => `
         <div class="news-card">
-          <div class="news-tag ${n.tagClass}">${n.tag.toUpperCase()}</div>
-          <div class="news-headline">${n.headline}</div>
-          <div class="news-meta"><span>${n.source}</span><span>${n.time}</span></div>
+          <div class="news-tag tag-science">LIVE</div>
+          <div class="news-headline">${n}</div>
+          <div class="news-meta">
+            <span>GeoNews</span>
+            <span>${data.riskLevel || "normal"}</span>
+          </div>
         </div>
       `).join('');
-    }, 600);
+   })
+    .catch(err => {
+      console.error(err);
+      body.innerHTML = "<p>Error loading news</p>";
+    });
 
-  } else if (tab === 'stats') {
-    const s = statsDb[name] || statsDb.default;
-    body.innerHTML = `
-      <div class="stat-row">
+} else if (tab === 'stats') {
+  const s = statsDb[name] || statsDb.default;
+  body.innerHTML = `
+    <div> class="stat-row">
         <div class="stat-item">
           <div class="stat-label">POPULATION</div>
           <div class="stat-value">${s.pop}</div>
