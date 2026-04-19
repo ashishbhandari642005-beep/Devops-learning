@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GeoNews — World Map</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌐</div>
+    <div class="logo-text">Geo<span>News</span></div>
+  </div>
+  <div class="divider"></div>
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    LIVE
+  </div>
+
+  <div class="search-wrap" id="searchWrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search country…" autocomplete="off"/>
+    <div class="search-results" id="searchResults" style="display:none;"></div>
+  </div>
+
+  <div class="header-right">
+    <div class="stat-chip">Countries <b id="countryCount">—</b></div>
+    <div class="stat-chip" id="selectedChip" style="display:none;">Selected <b id="selectedName">—</b></div>
+  </div>
+</header>
+
+<div class="main">
+
+  
+
+  <!-- Globe -->
+  <div id="globe-container">
+    <div id="globe"></div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <div class="panel-title">Intelligence Feed</div>
+      <div class="panel-country" id="panelCountry">Select a country</div>
+      <div class="panel-meta" id="panelMeta">Click any region on the map</div>
+    </div>
+
+    <div class="panel-tabs" id="panelTabs" style="display:none;">
+      <button class="tab-btn active" data-tab="news">News</button>
+      <button class="tab-btn" data-tab="stats">Stats</button>
+      <button class="tab-btn" data-tab="info">Info</button>
+    </div>
+
+    <div class="panel-body" id="panelBody">
+      <div class="empty-state">
+        <div class="empty-icon">🗺️</div>
+        <div class="empty-title">No country selected</div>
+        <div class="empty-sub">Click on any country on the map to load the latest news and intelligence data.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-item">Zoom <span id="zoomLevel">2</span></div>
+  <div class="footer-item">Lat <span id="centerLat">20.0°</span></div>
+  <div class="footer-item">Lng <span id="centerLng">0.0°</span></div>
+  <div class="footer-item" style="margin-left:auto;">© OpenStreetMap · CartoDB</div>
+</footer>
+
+<!-- Tooltip & Toast -->
+<div class="map-tooltip" id="mapTooltip" style="opacity:0;"></div>
+<div class="toast" id="toast"></div>
+
+<!-- External Libraries -->
+<script src="https://unpkg.com/three"></script>
+<script src="https://unpkg.com/globe.gl"></script>
+
+<!-- App Script -->
+<script src="app.js"></script>
+
+</body>
+</html>
