@@ -1,43 +1,21 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 export default function Devices() {
-  const devices = [
-    {
-      name: "Lab-PC-01",
-      lab: "Lab A",
-      ip: "192.168.1.10",
-      status: "Online",
-      cpu: "45%",
-      ram: "52%",
-    },
-    {
-      name: "Lab-PC-12",
-      lab: "Lab A",
-      ip: "192.168.1.12",
-      status: "Warning",
-      cpu: "88%",
-      ram: "76%",
-    },
-    {
-      name: "Lab-PC-47",
-      lab: "Lab B",
-      ip: "192.168.1.47",
-      status: "Offline",
-      cpu: "--",
-      ram: "--",
-    },
-    {
-      name: "Server-01",
-      lab: "Server Room",
-      ip: "192.168.10.1",
-      status: "Online",
-      cpu: "55%",
-      ram: "80%",
-    },
-  ];
+  const [devices, setDevices] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/devices")
+      .then((res) => setDevices(res.data))
+      .catch((err) => console.log(err));
+  }, []);
 
   const getColor = (status) => {
     if (status === "Online") return "#16a34a";
     if (status === "Warning") return "#f59e0b";
     if (status === "Offline") return "#dc2626";
+    return "#64748b";
   };
 
   return (
@@ -98,8 +76,8 @@ export default function Devices() {
                   </span>
                 </td>
 
-                <td style={{ padding: "14px" }}>{item.cpu}</td>
-                <td style={{ padding: "14px" }}>{item.ram}</td>
+                <td style={{ padding: "14px" }}>{item.cpu}%</td>
+                <td style={{ padding: "14px" }}>{item.ram}%</td>
               </tr>
             ))}
           </tbody>

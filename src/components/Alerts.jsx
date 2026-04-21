@@ -1,30 +1,15 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 export default function Alerts() {
-  const alerts = [
-    {
-      title: "Lab-PC-47 Offline",
-      message: "Device has been disconnected for 12 minutes.",
-      level: "Critical",
-      time: "2 min ago",
-    },
-    {
-      title: "High CPU Usage",
-      message: "Lab-PC-12 CPU reached 91%.",
-      level: "Warning",
-      time: "10 min ago",
-    },
-    {
-      title: "Low Disk Space",
-      message: "Server-01 disk usage reached 95%.",
-      level: "Critical",
-      time: "18 min ago",
-    },
-    {
-      title: "RAM Usage High",
-      message: "Lab-PC-33 RAM crossed 80%.",
-      level: "Info",
-      time: "30 min ago",
-    },
-  ];
+  const [alerts, setAlerts] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/alerts")
+      .then((res) => setAlerts(res.data))
+      .catch((err) => console.log(err));
+  }, []);
 
   const color = (level) => {
     if (level === "Critical") return "#dc2626";
@@ -58,9 +43,6 @@ export default function Alerts() {
               }}
             >
               <h3>{item.title}</h3>
-              <span style={{ color: "#64748b", fontSize: "13px" }}>
-                {item.time}
-              </span>
             </div>
 
             <p style={{ color: "#64748b", marginBottom: "10px" }}>

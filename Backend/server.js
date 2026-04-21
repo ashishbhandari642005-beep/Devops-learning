@@ -1,3 +1,6 @@
+const Device = require("./models/Device");
+const Alert = require("./models/Alert");
+const Ticket = require("./models/Ticket");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -15,65 +18,154 @@ mongoose
   .then(() => console.log("MongoDB Connected ✅"))
   .catch((err) => console.log(err));
 
-/* Routes */
+/* Home Route */
 app.get("/", (req, res) => {
   res.send("CampusOps Backend Running 🚀");
 });
 
-/* Devices Route */
+/* =========================
+   DEVICES ROUTES
+========================= */
+
+/* Get All Devices */
 app.get("/api/devices", async (req, res) => {
-  res.json([
-    {
-      name: "Lab-PC-01",
-      lab: "Lab A",
-      ip: "192.168.1.10",
-      status: "Online",
-      cpu: "45%",
-      ram: "52%",
-    },
-    {
-      name: "Server-01",
-      lab: "Server Room",
-      ip: "192.168.10.1",
-      status: "Warning",
-      cpu: "81%",
-      ram: "74%",
-    },
-  ]);
+  try {
+    const devices = await Device.find();
+    const now = Date.now();
+
+    const updated = await Promise.all(
+      devices.map(async (d) => {
+        if (!d.lastSeen) {
+          d.status = "Offline";
+
+          const exists = await Alert.findOne({
+            title: "Device Offline",
+            message: `${d.name} is offline`
+          });
+
+          if (!exists) {
+            await Alert.create({
+              title: "Device Offline",
+              level: "Critical",
+              message: `${d.name} is offline`
+            });
+          }
+
+          return d;
+        }
+
+        const diff =
+          (now - new Date(d.lastSeen).getTime()) / 1000;
+
+        if (diff > 120) {
+          d.status = "Offline";
+
+          const exists = await Alert.findOne({
+            title: "Device Offline",
+            message: `${d.name} is offline`
+          });
+
+          if (!exists) {
+            await Alert.create({
+              title: "Device Offline",
+              level: "Critical",
+              message: `${d.name} is offline`
+            });
+          }
+        }
+
+        return d;
+      })
+    );
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
-/* Alerts Route */
+/* Add New Device */
+
+
+app.post("/api/heartbeat", async (req, res) => {
+  try {
+    const data = req.body;
+
+    await Device.findOneAndUpdate(
+      { ip: data.ip },
+      {
+        ...data,
+        status: "Online",
+        lastSeen: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({ message: "Updated" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+
+/* =========================
+   ALERTS ROUTES
+========================= */
+
 app.get("/api/alerts", async (req, res) => {
-  res.json([
-    {
-      title: "High CPU Usage",
-      level: "Warning",
-      message: "Server-01 CPU crossed 80%",
-    },
-    {
-      title: "Device Offline",
-      level: "Critical",
-      message: "Lab-PC-12 disconnected",
-    },
-  ]);
+  try {
+    const alerts = await Alert.find().sort({ createdAt: -1 });
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
-/* Tickets Route */
+app.post("/api/tickets", async (req, res) => {
+  try {
+    const ticket = await Ticket.create(req.body);
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/* =========================
+   TICKETS ROUTES
+========================= */
+
 app.get("/api/tickets", async (req, res) => {
-  res.json([
-    {
-      id: "TK-101",
-      issue: "Mouse not working",
-      status: "Open",
-    },
-    {
-      id: "TK-102",
-      issue: "Projector issue",
-      status: "Resolved",
-    },
-  ]);
+  try {
+    const tickets = await Ticket.find().sort({ createdAt: -1 });
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
+app.post("/api/tickets", async (req, res) => {
+  try {
+    const ticket = await Ticket.create(req.body);
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.patch("/api/tickets/:id", async (req, res) => {
+  try {
+    const ticket = await Ticket.findByIdAndUpdate(
+      req.params.id,
+      { status: "Resolved" },
+      { new: true }
+    );
+
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 /* Server Start */
 const PORT = process.env.PORT || 5000;
 

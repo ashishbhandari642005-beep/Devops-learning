@@ -1,34 +1,15 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 export default function Tickets() {
-  const tickets = [
-    {
-      id: "#TK-101",
-      issue: "Mouse not working on Lab-PC-33",
-      status: "Open",
-      assigned: "Pending",
-      date: "20 Apr",
-    },
-    {
-      id: "#TK-102",
-      issue: "Windows boot error on Lab-PC-12",
-      status: "In Progress",
-      assigned: "Ravi",
-      date: "20 Apr",
-    },
-    {
-      id: "#TK-103",
-      issue: "Printer offline in Lab B",
-      status: "Resolved",
-      assigned: "Ankit",
-      date: "19 Apr",
-    },
-    {
-      id: "#TK-104",
-      issue: "Projector not connecting",
-      status: "Open",
-      assigned: "Pending",
-      date: "18 Apr",
-    },
-  ];
+  const [tickets, setTickets] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/tickets")
+      .then((res) => setTickets(res.data))
+      .catch((err) => console.log(err));
+  }, []);
 
   const color = (status) => {
     if (status === "Open") return "#dc2626";
@@ -61,19 +42,6 @@ export default function Tickets() {
               }}
             >
               <h3>{item.id}</h3>
-              <span style={{ color: "#64748b" }}>{item.date}</span>
-            </div>
-
-            <p style={{ marginBottom: "10px" }}>{item.issue}</p>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span>Assigned: {item.assigned}</span>
 
               <span
                 style={{
@@ -87,6 +55,8 @@ export default function Tickets() {
                 {item.status}
               </span>
             </div>
+
+            <p>{item.issue}</p>
           </div>
         ))}
       </div>
