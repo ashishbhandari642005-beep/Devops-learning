@@ -37,20 +37,20 @@ jobs:
           docker push ashish00234/campusops-frontend:v21
 
       - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region eu-north-1 --name geonews
+        run: aws eks update-kubeconfig --region eu-north-1 --name geonews-cluster
         
       - name: Check Nodes
         run: kubectl get nodes
         
       - name: Restart Backend
-        run: kubectl rollout restart deployment/backend -n geonews
+        run: kubectl rollout restart deployment/backend -n geonews-cluster
         
       - name: Restart Frontend
-        run: kubectl rollout restart deployment/frontend -n geonews
+        run: kubectl rollout restart deployment/frontend -n geonews-cluster
         
       - name: Backend Status
-        run: kubectl rollout status deployment/backend -n geonews
+        run: kubectl rollout status deployment/backend -n geonews-cluster
 
       - name: Frontend Status
-        run: kubectl rollout status deployment/frontend -n geonews
+        run: kubectl rollout status deployment/frontend -n geonews-cluster
 
