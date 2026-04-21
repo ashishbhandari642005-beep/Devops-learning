@@ -29,11 +29,6 @@ jobs:
           docker build -t ashish00234/campusops-frontend:v21 ./frontend
           docker push ashish00234/campusops-frontend:v21
 
-      - name: Setup kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" > $HOME/.kube/config
-
       - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/backend backend=ashish00234/campusops-backend:v21
