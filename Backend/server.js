@@ -30,60 +30,26 @@ app.get("/", (req, res) => {
 /* Get All Devices */
 app.get("/api/devices", async (req, res) => {
   try {
-    const devices = await Device.find();
     const now = Date.now();
 
-    const updated = await Promise.all(
-      devices.map(async (d) => {
-        if (!d.lastSeen) {
-          d.status = "Offline";
+    const devices = await Device.find().lean();
 
-          const exists = await Alert.findOne({
-            title: "Device Offline",
-            message: `${d.name} is offline`
-          });
+    const updated = devices.map((d) => {
+      const diff = d.lastSeen
+        ? (now - new Date(d.lastSeen).getTime()) / 1000
+        : 999999;
 
-          if (!exists) {
-            await Alert.create({
-              title: "Device Offline",
-              level: "Critical",
-              message: `${d.name} is offline`
-            });
-          }
-
-          return d;
-        }
-
-        const diff =
-          (now - new Date(d.lastSeen).getTime()) / 1000;
-
-        if (diff > 120) {
-          d.status = "Offline";
-
-          const exists = await Alert.findOne({
-            title: "Device Offline",
-            message: `${d.name} is offline`
-          });
-
-          if (!exists) {
-            await Alert.create({
-              title: "Device Offline",
-              level: "Critical",
-              message: `${d.name} is offline`
-            });
-          }
-        }
-
-        return d;
-      })
-    );
+      return {
+        ...d,
+        status: diff > 120 ? "Offline" : "Online"
+      };
+    });
 
     res.json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
-
 /* Add New Device */
 
 
