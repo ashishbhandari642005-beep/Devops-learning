@@ -1,10 +1,12 @@
-const Device = require("./models/Device");
-const Alert = require("./models/Alert");
-const Ticket = require("./models/Ticket");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+
 require("dotenv").config();
+
+const deviceRoutes = require("./routes/deviceRoutes");
+const alertRoutes = require("./routes/alertRoutes");
+const ticketRoutes = require("./routes/ticketRoutes");
 
 const app = express();
 
@@ -23,115 +25,11 @@ app.get("/", (req, res) => {
   res.send("CampusOps Backend Running 🚀");
 });
 
-/* =========================
-   DEVICES ROUTES
-========================= */
+/* API Routes */
+app.use("/api/devices", deviceRoutes);
+app.use("/api/alerts", alertRoutes);
+app.use("/api/tickets", ticketRoutes);
 
-/* Get All Devices */
-app.get("/api/devices", async (req, res) => {
-  try {
-    const now = Date.now();
-
-    const devices = await Device.find().lean();
-
-    const updated = devices.map((d) => {
-      const diff = d.lastSeen
-        ? (now - new Date(d.lastSeen).getTime()) / 1000
-        : 999999;
-
-      return {
-        ...d,
-        status: diff > 120 ? "Offline" : "Online"
-      };
-    });
-
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-/* Add New Device */
-
-
-app.post("/api/heartbeat", async (req, res) => {
-  try {
-    const data = req.body;
-
-    await Device.findOneAndUpdate(
-      { ip: data.ip },
-      {
-        ...data,
-        status: "Online",
-        lastSeen: new Date()
-      },
-      { upsert: true, new: true }
-    );
-
-    res.json({ message: "Updated" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-
-
-/* =========================
-   ALERTS ROUTES
-========================= */
-
-app.get("/api/alerts", async (req, res) => {
-  try {
-    const alerts = await Alert.find().sort({ createdAt: -1 });
-    res.json(alerts);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-app.post("/api/tickets", async (req, res) => {
-  try {
-    const ticket = await Ticket.create(req.body);
-    res.json(ticket);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-/* =========================
-   TICKETS ROUTES
-========================= */
-
-app.get("/api/tickets", async (req, res) => {
-  try {
-    const tickets = await Ticket.find().sort({ createdAt: -1 });
-    res.json(tickets);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-app.post("/api/tickets", async (req, res) => {
-  try {
-    const ticket = await Ticket.create(req.body);
-    res.json(ticket);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-app.patch("/api/tickets/:id", async (req, res) => {
-  try {
-    const ticket = await Ticket.findByIdAndUpdate(
-      req.params.id,
-      { status: "Resolved" },
-      { new: true }
-    );
-
-    res.json(ticket);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
 /* Server Start */
 const PORT = process.env.PORT || 5000;
 

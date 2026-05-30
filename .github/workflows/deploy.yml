@@ -28,13 +28,13 @@ jobs:
 
       - name: Build Backend Image
         run: |
-          docker build -t ashish00234/campusops-backend:v21 ./Backend
-          docker push ashish00234/campusops-backend:v21
+          docker build -t ashish00234/campusops-backend:v22 ./Backend
+          docker push ashish00234/campusops-backend:v22
 
       - name: Build Frontend Image
         run: |
-          docker build -t ashish00234/campusops-frontend:v21 ./frontend
-          docker push ashish00234/campusops-frontend:v21
+          docker build -t ashish00234/campusops-frontend:v22 ./frontend
+          docker push ashish00234/campusops-frontend:v22
 
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --region eu-north-1 --name geonews-cluster

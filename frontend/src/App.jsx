@@ -1,8 +1,14 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import Login from "./components/Login";
+//import Settings from "./components/Settings";
 
 export default function App() {
+     const [emailAlerts, setEmailAlerts] = useState(true);
+     const [smsAlerts, setSmsAlerts] = useState(false);
+     const [autoTicket, setAutoTicket] = useState(true);
+     const [darkMode, setDarkMode] = useState(false);
+
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("login") === "true"
   );
@@ -20,31 +26,65 @@ const [search, setSearch] = useState("");
   }, [page]);
 
   useEffect(() => {
-    const loadData = () => {
-      axios
-        .get("http://ac78604ac7b1b4c64825008e57434189-594475365.eu-north-1.elb.amazonaws.com/api/devices")
-        .then((res) => setDevices(res.data))
-        .catch((err) => console.log(err));
 
-      axios
-        .get("http://ac78604ac7b1b4c64825008e57434189-594475365.eu-north-1.elb.amazonaws.com/api/alerts")
-        .then((res) => setAlerts(res.data))
-        .catch((err) => console.log(err));
+  const loadData = () => {
 
-      axios
-        .get("http://ac78604ac7b1b4c64825008e57434189-594475365.eu-north-1.elb.amazonaws.com/api/tickets")
-        .then((res) => setTickets(res.data))
-        .catch((err) => console.log(err));
-    };
-    
+    // DEVICES
+    axios
+      .get("http://localhost:5000/api/devices")
+      .then((res) => {
 
+        setDevices(res.data);
 
-    loadData();
+        res.data.forEach((device) => {
 
-    const timer = setInterval(loadData, 5000);
+          const deviceOffline =
+            device.status === "Offline";
 
-    return () => clearInterval(timer);
-  }, []);
+          if (deviceOffline && autoTicket) {
+
+            axios.post(
+              "http://localhost:5000/api/tickets",
+              {
+                id:
+                  "TK-" +
+                  Math.floor(Math.random() * 10000),
+
+                issue:
+                  `${device.name} is Offline`,
+
+                status: "Open"
+              }
+            );
+
+          }
+
+        });
+
+      })
+      .catch((err) => console.log(err));
+
+    // ALERTS
+    axios
+      .get("http://localhost:5000/api/alerts")
+      .then((res) => setAlerts(res.data))
+      .catch((err) => console.log(err));
+
+    // TICKETS
+    axios
+      .get("http://localhost:5000/api/tickets")
+      .then((res) => setTickets(res.data))
+      .catch((err) => console.log(err));
+
+  };
+
+  loadData();
+
+  const timer = setInterval(loadData, 5000);
+
+  return () => clearInterval(timer);
+
+}, [autoTicket]);
   if (!isLoggedIn) {
     return <Login setIsLoggedIn={setIsLoggedIn} />;
   }
@@ -136,7 +176,7 @@ const raiseManualTicket = async () => {
 
   try {
     await axios.post(
-      "http://ac78604ac7b1b4c64825008e57434189-594475365.eu-north-1.elb.amazonaws.com/api/tickets",
+      "http://localhost:5000/api/tickets",
       {
         id: "TK-" + Math.floor(Math.random() * 1000),
         issue,
@@ -145,7 +185,7 @@ const raiseManualTicket = async () => {
     );
 
     const res = await axios.get(
-      "http://ac78604ac7b1b4c64825008e57434189-594475365.eu-north-1.elb.amazonaws.com/api/tickets"
+      "http://localhost:5000/api/tickets"
     );
 
     setTickets(res.data);
@@ -158,11 +198,11 @@ const raiseManualTicket = async () => {
 const closeTicket = async (mongoId) => {
   try {
     await axios.patch(
-      `http://ac78604ac7b1b4c64825008e57434189-594475365.eu-north-1.elb.amazonaws.com/api/tickets/${mongoId}`
+      `http://localhost:5000/api/tickets/${mongoId}`
     );
 
-    const res = await axios.get(
-      "http://ac78604ac7b1b4c64825008e57434189-594475365.eu-north-1.elb.amazonaws.com/api/tickets"
+    const res = await axios.get (
+      "http://localhost:5000/api/tickets"
     );
 
     setTickets(res.data);
@@ -182,10 +222,17 @@ const closeTicket = async (mongoId) => {
   };
 
   const cardStyle = {
-    background: "white",
-    borderRadius: "18px",
-    padding: "22px",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+  background: darkMode
+    ? "#1e293b"
+    : "white",
+
+  color: darkMode
+    ? "white"
+    : "black",
+
+  borderRadius: "18px",
+  padding: "22px",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
   };
  
 
@@ -260,7 +307,7 @@ const closeTicket = async (mongoId) => {
         <div style={cardStyle}>
           <h2 style={{ marginBottom: "18px" }}>Recent Alerts</h2>
 
-          {alerts.map((item, i) => (
+          {filteredAlerts.map((item, i) => (
             <div
               key={i}
               style={{
@@ -322,7 +369,7 @@ const closeTicket = async (mongoId) => {
           </thead>
 
           <tbody>
-            {devices.map((item, i) => (
+            {filteredDevices.map((item, i) => (
               <tr key={i} style={{ borderTop: "1px solid #e2e8f0" }}>
                 <td style={{ padding: "14px" }}>{item.name}</td>
                 <td style={{ padding: "14px" }}>{item.lab}</td>
@@ -359,7 +406,7 @@ const closeTicket = async (mongoId) => {
         Alerts Center
       </h1>
 
-      {alerts.map((item, i) => (
+      {filteredAlerts.map((item, i) => (
         <div
           key={i}
           style={{
@@ -439,7 +486,7 @@ const closeTicket = async (mongoId) => {
         </thead>
 
         <tbody>
-  {tickets.map((item, i) => (
+  {filteredTickets.map((item, i) => (
     <tr
       key={i}
       style={{
@@ -480,25 +527,26 @@ const closeTicket = async (mongoId) => {
       </td>
 
       {/* Action */}
-      <td style={{ padding: "14px" }}>
-        {item.status !== "Resolved" ? (
-          <button
-            onClick={() => closeTicket(item._id)}
-            style={{
-              background: "#16a34a",
-              color: "white",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: "8px",
-              cursor: "pointer"
-            }}
-          >
-            Close
-          </button>
-        ) : (
-          "Done"
-        )}
-      </td>
+      {/* Action */}
+        <td style={{ padding: "14px" }}>
+          {item.status !== "Resolved" ? (
+            <button
+              onClick={() => closeTicket(item._id)}
+              style={{
+                background: "#16a34a",
+                color: "white",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: "8px",
+                cursor: "pointer"
+              }}
+            >
+              Close
+            </button>
+          ) : (
+            "Done"
+          )}
+        </td>
     </tr>
   ))}
 </tbody>
@@ -507,44 +555,129 @@ const closeTicket = async (mongoId) => {
   </>
 );
 
-  const renderSettings = () => (
+  const renderSettings = () => {
+
+  const buttonStyle = (active) => ({
+    padding: "8px 16px",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "600",
+    background: active ? "#16a34a" : "#e2e8f0",
+    color: active ? "white" : "black",
+  });
+
+  return (
     <>
       <h1 style={{ fontSize: "30px", marginBottom: "22px" }}>
         Settings
       </h1>
 
       <div style={cardStyle}>
-        <p style={{ marginBottom: "16px" }}>
-          Email Alerts
-        </p>
-        <p style={{ marginBottom: "16px" }}>
-          SMS Notifications
-        </p>
-        <p style={{ marginBottom: "16px" }}>
-          Auto Ticket Creation
-        </p>
-        <p>System Theme: Light</p>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "20px",
+          }}
+        >
+          <p>Email Alerts</p>
+
+          <button
+            style={buttonStyle(emailAlerts)}
+            onClick={() =>
+              setEmailAlerts(!emailAlerts)
+            }
+          >
+            {emailAlerts ? "Enabled" : "Disabled"}
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "20px",
+          }}
+        >
+          <p>SMS Notifications</p>
+
+          <button
+            style={buttonStyle(smsAlerts)}
+            onClick={() =>
+              setSmsAlerts(!smsAlerts)
+            }
+          >
+            {smsAlerts ? "Enabled" : "Disabled"}
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "20px",
+          }}
+        >
+          <p>Auto Ticket Creation</p>
+
+          <button
+            style={buttonStyle(autoTicket)}
+            onClick={() =>
+              setAutoTicket(!autoTicket)
+            }
+          >
+            {autoTicket ? "Enabled" : "Disabled"}
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <p>System Theme</p>
+
+          <button
+            style={buttonStyle(darkMode)}
+            onClick={() =>
+              setDarkMode(!darkMode)
+            }
+          >
+            {darkMode ? "Dark" : "Light"}
+          </button>
+        </div>
+
       </div>
     </>
   );
-
+};
   const renderPage = () => {
     if (page === "Dashboard") return renderDashboard();
     if (page === "Devices") return renderDevices();
     if (page === "Alerts") return renderAlerts();
     if (page === "Tickets") return renderTickets();
-    if (page === "Settings") return renderSettings();
-  };
+    if (page === "Settings")
+       return renderSettings();
+    
+    };
 
   return (
     <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f1f5f9",
-        fontFamily: "Inter, Arial, sans-serif",
-      }}
-    >
+          style={{
+          display: "flex",
+          minHeight: "100vh",
+          background: darkMode
+            ? "#0f172a"
+            : "#f1f5f9",
+          color: darkMode
+            ? "white"
+            : "black",
+          fontFamily: "Inter, Arial, sans-serif",
+        }}
+      >
       <div
         style={{
           width: "250px",
@@ -574,7 +707,11 @@ const closeTicket = async (mongoId) => {
           </div>
         ))}
 
-        <button
+       <button
+          onClick={() => {
+            localStorage.removeItem("login");
+            setIsLoggedIn(false);
+          }}
           style={{
             marginTop: "40px",
             width: "100%",
@@ -593,7 +730,9 @@ const closeTicket = async (mongoId) => {
       <div style={{ flex: 1 }}>
         <div
           style={{
-            background: "white",
+            background: darkMode
+                ? "#1e293b"
+                : "white",
             padding: "20px 30px",
             display: "flex",
             justifyContent: "space-between",

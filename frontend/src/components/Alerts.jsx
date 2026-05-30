@@ -5,9 +5,14 @@ export default function Alerts() {
   const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
+    console.log("Fetching alerts...");
+
     axios
       .get("http://localhost:5000/api/alerts")
-      .then((res) => setAlerts(res.data))
+      .then((res) => {
+        console.log(res.data);
+        setAlerts(res.data);
+      })
       .catch((err) => console.log(err));
   }, []);
 
@@ -24,7 +29,7 @@ export default function Alerts() {
       </h1>
 
       <div style={{ display: "grid", gap: "16px" }}>
-        {filteredAlerts.map((item, index) => (
+        {alerts.map((item, index) => (
           <div
             key={index}
             style={{
@@ -35,31 +40,11 @@ export default function Alerts() {
               borderLeft: `5px solid ${color(item.level)}`,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "8px",
-              }}
-            >
-              <h3>{item.title}</h3>
-            </div>
+            <h3>{item.title}</h3>
 
-            <p style={{ color: "#64748b", marginBottom: "10px" }}>
-              {item.message}
-            </p>
+            <p>{item.message}</p>
 
-            <span
-              style={{
-                background: `${color(item.level)}20`,
-                color: color(item.level),
-                padding: "5px 10px",
-                borderRadius: "20px",
-                fontSize: "13px",
-              }}
-            >
-              {item.level}
-            </span>
+            <span>{item.level}</span>
           </div>
         ))}
       </div>
